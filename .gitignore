@@ -1,0 +1,16 @@
+# Ignore Hugo build output
+/public/
+/resources/_gen/
+
+# Ignore Hugo's default working directory
+/hugo_stats.json
+
+# Ignore Node.js dependencies
+/node_modules/
+
+# Ignore temporary and backup files
+*.tmp
+*.bak
+*~
+*.swp
+.DS_Store

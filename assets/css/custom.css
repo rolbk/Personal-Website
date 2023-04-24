@@ -1,0 +1,34 @@
+
+div > nav > a.font-medium {
+	font-family: "Lucida Console", "Courier New", monospace;
+	font-weight:700;
+}
+
+@keyframes cursor-blink {
+  0% {opacity: 0}
+  45%{opacity: 0}
+  50% {opacity: 1}
+  95% {opacity: 1}
+  100% {opacity: 0}
+}
+
+div > nav > a.font-medium::after {
+  content: "\00a0";
+  width: 10px;
+  height: 20px;
+  margin: 8px;
+  background: rgba(var(--color-primary-800));
+  display: inline-block;
+
+  animation: cursor-blink 1.5s steps(20) infinite;
+}
+
+html.dark div > nav > a.font-medium::after {
+  background: rgba(var(--color-primary-200));
+}
+
+@media (prefers-reduced-motion) {
+  div > nav > a.font-medium::after {
+    animation: none
+  }
+}

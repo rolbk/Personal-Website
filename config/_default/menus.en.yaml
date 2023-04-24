@@ -1,0 +1,19 @@
+main:
+  - name: Blog
+    pageRef: blog
+    weight: 10
+  - name: Résumé
+    pageRef: resume
+    weight: 20
+  - name: Experience
+    pageRef: experience
+    weight: 30
+  - name: About Me
+    pageRef: aboutme
+    weight: 40
+  - pre: github
+    url: 'https://github.com/EmanuelMairoll'
+    weight: 50
+footer:
+  - name: Privacy
+    pageRef: privacy

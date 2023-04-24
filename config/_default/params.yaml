@@ -1,0 +1,18 @@
+colorScheme: ocean
+defaultAppearance: dark
+autoSwitchAppearance: false
+#logo: blowfish_logo_transparent.png
+
+header:
+  layout: fixed
+
+footer:
+  showThemeAttribution: false
+  showAppearanceSwitcher: true
+  showMenu: true
+  showCopyright: true
+  showScrollToTop: true
+
+homepage:
+  layout: background
+  homepageImage: background.jpg
