@@ -14,15 +14,9 @@ series_order = 1
 Or: How I hooked up my Sofa to Home Assistant
 {{< /lead >}}
 
-What's better than an electrically extendable sofa? One that I can control from Home Assistant, obviously!
-
 __*Stories from the Open Source Smart Home - Part 1*__
 
----
-
-When I was shopping for furniture for my new flat, I stumbled upon the Corner Sofa *Merlin*. Did I fall in love with it because of its supreme comfort? Its elegant design? The way it perfectly complemented my living room's feng shui? 
-
-No. I fell in love because it had two buttons that electrically extended the slim section into a full guest bed. **Two. Electric. Buttons.**
+When I was shopping for furniture for my new flat, I stumbled upon the Corner Sofa *Merlin*. Its slim section could extend into a full guest bed, which was already convenient whenever someone stayed over. What really sold me, however, was the control panel built into the side: two buttons drove the entire mechanism. **Two. Electric. Buttons.**
 
 ![merlin](merlin.webp)
 
@@ -36,7 +30,7 @@ My second one was
 
 Because apparently, I'm the kind of person who looks at perfectly functional furniture and thinks, "You know what this needs? An IP address."
 
-Two days after delivery, I already had the sofa flipped on its back with my screwdriver in hand. What followed was a tale of triumph, tragedy, and the smell of burnt silicon.
+Two days after delivery, I already had the sofa flipped on its back with my screwdriver in hand. What followed was a dramatic tale in three acts.
 
 ---
 
@@ -44,19 +38,13 @@ Two days after delivery, I already had the sofa flipped on its back with my scre
 
 ![recon](recon.webp)
 
-First, some reconnaissance. Getting into the internals of the sofa non-destructively was surprisingly civilized:
+Getting inside without destroying my brand-new sofa was the first challenge. Fortunately, access was surprisingly easy: flip it onto its back, unscrew the right rear leg, and remove the staples holding the cover cloth in that corner. A couple of minutes later, I was lying next to an upside-down sofa and shining a flashlight into its guts.
 
-1. Flip sofa onto its back
-2. Unscrew the right back leg to access the cover cloth directly  
-3. Remove the staples holding the cover cloth in that corner
-4. Stare into the darkness with a flashlight
-
-Looking around inside reveals a very straightforward setup: an electrically extendable piston, a power supply, and a suspicious black box wiring everything together. Screwing off the box and opening it up reveals a simple circuit board.
+The hardware inside was just as simple: an electrically extendable piston, a power supply, and a suspicious black control box tying everything together. I unscrewed the box, opened it, and found a small circuit board inside.
 
 ![box](box.webp)
 ![board_front](board_front.webp)
 ![board_back](board_back.webp)
-
 
 Let's quickly go through what's happening here: The board is supplied with 32V, which passes through a 4Ω shunt to one terminal of each button. On the return path, every button goes through a 10kΩ resistor into a relay driver transistor and relay, which switch 32V and GND onto the "DN" and "UP" terminals of the piston.
 
@@ -64,7 +52,7 @@ Let's quickly go through what's happening here: The board is supplied with 32V, 
 
 So, game plan: Simply intercept the button signals and insert my own "implant" to hijack control. 
 
-The best part? The buttons connected via a coupler, meaning theoretically no soldering required. Theoretically. (Narrator: There would be soldering.)
+The buttons connected via a coupler, meaning theoretically no soldering required. Theoretically. (Narrator: There would be soldering.)
 
 ---
 
@@ -72,18 +60,14 @@ The best part? The buttons connected via a coupler, meaning theoretically no sol
 
 ### Hardware Selection
 
-For the implant, I needed something with:
-- Arduino-like simplicity (because I value my sanity)
-- Ethernet connectivity (because WiFi sucks for IoT)
-- Enough GPIO pins for my nefarious purposes
-- Good software support (see: sanity, valuing of)
+For the implant, I needed something with Ethernet connectivity (because WiFi sucks for IoT), enough GPIO pins, and solid software support.
 
 After my last IoT adventure, I opted for an OLIMEX ESP32-POE again, as I was very satisfied with it. It's reliable, well-documented (as in "fully Open Source"), and has everything I needed for the project.
 
 The only feature I wished the ESP32-POE had was built-in circuitry for handling higher voltages. Since the board lacks onboard relays or optocouplers, I decided to interface directly with the sofa's control circuits.
 For the output signals, I initially tried connecting the ESP's 3.3V GPIO pins directly to the transistor bases, but the existing 10kΩ inline resistors dropped too much voltage. One quick soldering job later, I had bridged those resistors and added 820Ω resistors on the breadboard instead to properly scale the voltage. This gave the transistors exactly what they needed to switch reliably.
 
-For the input signals, the sofa's buttons supply 32V - definitely not ESP-friendly territory. A simple voltage divider using 10kΩ and 1kΩ resistors brought those signals down to a safe 3V range that the ESP could read without releasing its magic smoke.
+For the input signals, the sofa's buttons supply 32V - definitely not ESP-friendly territory. A simple voltage divider using 10kΩ and 1kΩ resistors brought those signals down to a safe 3V range that the ESP could read.
 
 For power supply, I simply opted for USB because I didn't know if the piston would create ripples on the power supply that could throw the ESP off, and it was easier than messing with the sofa supply voltage or ensuring galvanic isolation for PoE.
 
@@ -93,18 +77,9 @@ For power supply, I simply opted for USB because I didn't know if the piston wou
 
 I really, REALLY didn't want to spend my evenings debugging a sofa. Can you imagine explaining that to your friends? "Sorry, can't come out tonight, my couch threw a segfault."
 
-Meet ESPHome - Home Assistant's brilliant sibling project that turns ESP boards into smart home devices with just YAML. No C++, no Arduino IDE, just straight-forward, declarative configuration.
+Luckily, ESPHome spared me that conversation. It turns ESP boards into Home Assistant devices using declarative YAML, so I could define the sofa there without writing and maintaining separate firmware for it. It has a huge library of "components" covering everything from physical layer (Ethernet, WiFi, OpenThread) up to application layer (MQTT, HTTP, Home Assistant). And while I didn't exactly *expect* to find a component for `electrically-extendable-sofa`, there *is* a `cover` component designed for motorized window blinds. It already provides open, close, and stop actions, timed position tracking, and direct Home Assistant integration. From Home Assistant's perspective, my sofa was now simply a very wide window blind.
 
-In ESPHome, you simply define "components" in YAML syntax. It has a huge library covering everything from physical layer (Ethernet, WiFi, OpenThread) up to application layer (MQTT, HTTP, Home Assistant). 
-
-And while I didn't exactly *expect* to find a component for "electrically extendable sofa," there *is* a "Cover" component designed for motorized window blinds. The component provides:
-
-- Open, close, and stop commands
-- Open and close actions that can be mapped to GPIO outputs
-- Timed position tracking and percentage-based reporting
-- Home Assistant integration (direct mapping as HA cover)
-
-Perfect. Here's the finished configuration:
+Here is the finished configuration:
 
 ```yaml
 esphome:
@@ -201,39 +176,34 @@ Yeah, obviously my 32V cable landed directly on an unprotected transistor base.
 
 *Silence.*
 
-*The faint smell of silicon giving up on life.*
+*Faint magic smoke.*
 
 "Fuck."
 
-I tested it anyway, channeling the same energy as checking if a clearly deceased parrot is just resting. The transistor was fried. Completely dead.
+I tested it anyway... but the transistor was fried. Completely dead.
 
 ### The Resurrection
 
-Now I needed to source a replacement transistor. In hindsight, I could have used pretty much any similar transistor, but at this point it was personal - I wanted the exact same one out of spite.
+Now I needed to source a replacement transistor. In hindsight, I could have used pretty much any similar transistor, but I wanted the exact same one out of spite.
 
-Fortunately, I'm still on good terms with my electronics teachers from technical high school (HTL). One phone call, a nostalgic tour through the old labs and about 2 hours later, I had my replacement transistor in hand. (Shoutout to Mr. Lindner - you're a legend!)
+Fortunately, I'm still on good terms with my electronics teachers from technical high school (HTL). One phone call, a nostalgic tour through the old labs and about two hours later, Mr. Lindner had found me the exact replacement transistor.
 
-What followed was precision SMD soldering with a 20€ soldering iron while kneeling in front of my sofa like I was proposing to it. Somehow, through a combination of steady hands, pure determination, and what I can only assume was divine intervention, I got the tiny transistor properly soldered.
+What followed was precision SMD soldering with a 20€ soldering iron while kneeling in front of my sofa like I was proposing to it. Somehow, through a combination of steady hands and what I can only assume was divine intervention, I got the tiny transistor properly soldered.
 
-Can't show you pictures of this miraculous soldering job though, because... ehm... I lost them, or something like this.
+I can't show you pictures of the soldering job though, because... ehm... I lost them, or something like this.
 
-But in any case, I then rebuilt everything properly on a smaller, fitting breadboard, connected it to the UNPLUGGED sofa (learning had occurred!), mounted it inside with double-sided tape, reassembled everything, held my breath, and powered it on.
+But in any case, I then rebuilt everything properly on a smaller, fitting breadboard, connected it to the **UNPLUGGED** sofa, mounted it inside with double-sided tape, reassembled everything, held my breath, and powered it on.
 
-It worked like a charm.
+It was alive again.
 
 {{< youtubeLite id="kuYzAW1qodk" label="The Internet of Furniture" >}}
 
 ## The Aftermath: Living in the Future
 
-Now my sofa is a full-fledged member of my smart home ecosystem, I can:
-- Extend my sofa from anywhere in the world (because why not?)
-- Set up automations ("It's 10 PM, time to become a bed!")
-- Integrate with voice assistants ("Hey Siri, deploy the guest accommodations")
-- Monitor sofa position in real-time (critical metrics, obviously)
-- Create scenes that include sofa position ("Movie night mode: engaged")
+My sofa is now a full-fledged member of my smart home. I can extend it from Home Assistant, include it in automations and scenes, or say, "Hey Siri, deploy the guest accommodations." The original buttons still work exactly as before, so everyone else can continue pretending that it is normal furniture.
 
 Is this practical? Debatable. Is it necessary? Absolutely not. Is it awesome? You bet it is.
 
-*This is Part 1 of my "Stories from the Open Source Smart Home" series. Stay tuned for more adventures in unnecessary home automation!*
+*This is Part 1 of my "Stories from the Open Source Smart Home" series.*
 
-*Special thanks to the ESPHome team for making amazing software, Mr. Lindner for the emergency transistor supply, and my grandma for the interior design advice that led us to this particular sofa (though I'm pretty sure "hackable electronics" wasn't on her list of criteria). No sofas were permanently harmed in the making of this project.*
+*Special thanks to Mr. Lindner for the emergency transistor supply, and to my grandma for the interior design advice that led us to this particular sofa (though I'm pretty sure "hackable electronics" wasn't on her list of criteria). No sofas were permanently harmed in the making of this project.*
