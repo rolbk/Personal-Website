@@ -13,7 +13,7 @@ series_order = 1
 Or: What to do when your ISP removes bridge mode after you sign the contract
 {{< /lead >}}
 
-I *only* wanted to enable bridge mode. Instead, my friend Aaron and I ended up desoldering the router's NAND chip under a microscope as part of what has become one of my longest-running projects.
+I *only* wanted to enable bridge mode. Instead, my friend [Aaron Schramm](https://linkedin.com/in/aaron-schramm-308823271) and I ended up desoldering the router's NAND chip under a microscope as part of what has become one of my longest-running projects.
 
 This series documents our attempt to understand the locked-down Sagemcom router Yallo supplied with my fiber connection and make its hidden modem mode actually useful. Part 1 covers the initial web reconnaissance and the chip-off NAND dump, with Aaron providing the electrical engineering expertise and his frankly ridiculous rework setup.
 
@@ -25,25 +25,25 @@ The subscription included a mandatory Sagemcom F5685LGB, sold as the Yallo Home 
 
 Before ordering, I specifically confirmed with Yallo that bridge mode was supported. Based on that promise, I signed the 24-month contract. When the router arrived, the setting was present in the web interface as expected, so I bought the remaining hardware for my network.
 
-A few days later, when I finally went to enable it, the option had disappeared.
+A few days later, when I finally went to set everything up, the option had disappeared.
 
 After roughly twenty calls, the conversation eventually boiled down to this:
 
 > Yallo: "No, we cannot offer bridge mode."
 
-> Me: "But it was literally in the menu."
+> Me: "Bruh, it was literally in the menu."
 
 > Yallo: "Yes. That was a mistake."
 
-I had asked about bridge mode before signing, seen the option on the actual device, and bought the rest of my network around the assumption that it would work. Now Yallo was treating the whole thing as a UI mistake, while I was still locked into the 24-month contract.
+I had asked about bridge mode before signing and seen the option on the actual device. Now Yallo was gaslighting me, while I was still locked into the 24-month contract.
 
-The connection itself worked, but only with their Sagemcom doing all the routing. That meant placing a slow, locked-down vendor box I could barely configure at the entrance to my network, while the hardware I had bought for exactly that job sat behind it. Cancelling was no longer a realistic option, and Yallo clearly was not going to fix it.
+The connection itself worked, but only with their Sagemcom doing all the routing. That meant placing a locked-down and questionably safe vendor box at the entrance to my network, while the hardware I had bought for exactly that job sat behind it. Cancelling was no longer an option, and Yallo clearly was not going to fix it.
 
 _Alright then, I'll do it myself._
 
 ## Initial reconnaissance
 
-The immediate goal was to find out whether there was still a way to put the device into modem mode. I clicked through the web interface with the browser developer tools open and mapped the API calls made by each page. The router itself was about as restricted as expected: the interface was slow, most useful settings were missing, and even the LAN range was hard-coded to `192.168.0.1/24`.
+The first goal was to find out whether there was still a way to put the device into modem mode. I clicked through the web interface with the browser developer tools open and mapped the API calls made by each page. The router itself was about as restricted as expected: the interface was slow, most useful settings were missing, and even the LAN range was hard-coded to `192.168.0.1/24`.
 
 The interface turned out to be a vendor-generic frontend backed by a JSON API. Much of the Yallo-specific stuff lived entirely in the browser: the branding, page structure, input validation, and visibility of individual settings were all controlled by the frontend. These feature flags therefore provided a useful map of the router's functionality, including pages that Yallo had removed from the normal sidebar navigation without removing the underlying code. For those pages, the only barrier was the missing link to them... That was not an especially reassuring security boundary for the box sitting between my network and the internet.
 
@@ -81,11 +81,11 @@ After removing the screws, I attacked the plastic clips with considerably more f
 
 ## Board overview
 
-Removing the EMI shielding made the basic layout easy to follow. The Wi-Fi section and antenna connections occupy the upper part of the board, while a Broadcom `BCM68580XIFSBG` in the center acts as the main SoC. Two SK Hynix packages next to it provide the RAM, and the flash chip sits on the reverse side in roughly the same area. The Ethernet connectors and their supporting circuitry line one edge of the board. Separate from those connectors, the XGS-PON cable runs to its own receiver circuitry at the lower end of the board.
+Removing the EMI shielding made the basic layout easy to follow. The Wi-Fi section and antenna connections occupy the upper part of the board, while a Broadcom `BCM68580XIFSBG` in the center acts as the main SoC. Two SK Hynix packages next to it provide the RAM, and the flash chip sits on the back side in roughly the same area. The Ethernet connectors and their supporting circuitry line one edge of the board. Separate from those connectors, the XGS-PON cable runs to its own receiver circuitry at the lower end of the board.
 
 Before committing to soldering work, I looked for a hardware interface. On devices like these, four adjacent pins for power, ground, transmit, and receive often lead to a UART console, potentially providing system access with very little effort. I checked the obvious candidates on both sides of the board, but found nothing that smelled like UART.
 
-Finally, with all other options out of the way, the flash became the target. It is a Spansion/Cypress `S34ML04G2`: 4 Gbit, or 512 MiB, of SLC NAND in a BGA63 package. Reading it directly meant desoldering all 63 connections hidden underneath the package, which was well beyond what I could do with my normal soldering setup.
+Finally, with all other options out of the way, the flash became the target. It is a Spansion/Cypress `S34ML04G2`: 4 Gbit, or 512 MiB, of SLC NAND in a BGA63 package. Reading it directly meant desoldering all 63 connections hidden underneath the package, which was well beyond what can be done with a normal soldering setup.
 
 ![Close-up of the router's NAND flash package](nand-closeup.webp)
 
@@ -131,11 +131,11 @@ With the NAND safely off the board, we used a soldering iron and solder wick to 
 
 We initially planned to place the cleaned NAND into a spring-loaded socket and read it without reballing the package. To communicate with the programmer, Aaron used Xgpro, a weird Windows application he had downloaded from some Chinese website.
 
-We mounted the chip and connected the socket. Xgpro immediately reported bad connections across the chip and could not identify it. The reason was as simple as it was unfortunate: the socket only supported BGA48 packages, while our NAND used BGA63.
+We mounted the chip and connected the socket. The confusing part was that this nominally BGA48 adapter did have a removable white insert labelled `BGA63 9x11`, and our package physically fit inside it. Apparently that still only made the socket compatible with certain BGA63 layouts; ours was not one of them. Xgpro reported bad connections across the chip and could not identify it, so this NAND still required the separate adapter board.
 
-![The BGA63 NAND sitting in the incompatible BGA48 spring socket](wrong-adapter.webp)
+![The BGA63 NAND sitting in the white 9x11 mm insert of the spring-loaded socket](wrong-adapter.webp)
 
-*The BGA63 chip in the spring-loaded BGA48 socket adapter.*
+*The white insert is labelled BGA63 9x11, but this particular BGA63 layout still did not make contact correctly.*
 
 The alternative was a bare BGA63 adapter board. Instead of pressing the chip against spring contacts, it provided a matching set of pads for soldering the NAND directly. The board then connected those pads to the programmer.
 
@@ -151,11 +151,11 @@ We could either order the correct socket and wait several weeks, or bite the bul
 
 When Aaron pulled out the equipment for reballing, I finally realized that *ball grid array* is an entirely literal name: actual _balls_ of solder form the connections underneath the package. I had used the term BGA plenty of times before without ever thinking too hard about the "ball" part.
 
-Reballing therefore means taking a spatula and placing a new solder ball over each contact pad, then heating the package until they melt and bond to the pads during reflow. To put them into position, we used a reballing stencil: a thin metal mask with grids of holes. The balls slightly stick to anything they touch (yes, _anything_), so they stay on the pads after we push them into position. Aaron had several masks with different dimensions, so we tried them under the microscope until we found one whose holes aligned with the regular inner grid of the NAND, which used 0.40 mm solder balls. For anyone wondering how large those are in practice: pretty f***ing small.
+Reballing therefore means placing a new solder ball over each contact pad, then heating the package until they melt and bond to the pads during reflow. Before placing them, Aaron spread a thin layer of flux across the chip. Besides helping the solder wet the pads during reflow, it gave the tiny balls enough tack to stay where we put them... and made them stick to pretty much everything else they touched. Yes, _everything_. For the regular grid, we used a reballing stencil: a thin metal mask with grids of holes. Aaron had several masks with different dimensions, so we tried them under the microscope until we found one whose holes aligned with the regular inner grid of the NAND, which used 0.40 mm solder balls. For anyone wondering how large those are in practice: pretty f***ing small.
 
 The matching stencil still contained far more holes than the chip required. We taped over the unused parts until the exposed area matched the size of the inner grid, keeping loose balls out of all the positions we did not want to populate.
 
-After applying flux, we aligned the package beneath the taped stencil and poured the balls across it so one could settle into each open hole. This took care of the regular center area, but we still had to fill the unusual outer part of the BGA63 pattern by hand.
+We aligned the package beneath the taped stencil and poured the balls across it so one could settle into each open hole. This took care of the regular center area, but we still had to fill the unusual outer part of the BGA63 pattern by hand.
 
 ![Vials of solder balls used for BGA reballing](solder-balls.webp)
 
