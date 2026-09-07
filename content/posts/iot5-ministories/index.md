@@ -43,7 +43,7 @@ The device comes pre-flashed with ESPHome, so installation was surprisingly stra
 ![Doorman installed](doorman_installed.jpg)
 *The Doorman installed and blinking behind the intercom mounting plate*
 
-Now, every time I approach my building with arms full of groceries, one tap gesture on my phone and the door opens automatically. Well, to the confusion of my neighbors, who probably think I'm practicing street magic.
+Now, every time I approach my building with arms full of groceries, one tap gesture on my phone and the door opens auto-magically.
 
 I had a few questions during installation and reached out via the [Doorman Discord](https://discord.gg/t2d34dvmBf). Flo was super helpful and responsive. The device costs around €30, which is very reasonable for a custom-built, pre-flashed PCB. Consider supporting the project if you have a compatible intercom system!
 
@@ -113,7 +113,7 @@ I love this desk. As a computer scientist, standing while working is a blessing 
 
 But if you've been reading this series, you know me by now: If there's something in my apartment with buttons, it *needs* to be connected to Home Assistant. Because reasons.
 
-Enter the **Upsy Desky**, a small ESP32-based PCB I bought from [Tindie](https://www.tindie.com/stores/tjhorner/). Created by TJ Horner, it goes between the control panel and the motor driver, intercepting the communication and exposing it via the ESPHome API.
+Meet the **Upsy Desky**, a small ESP32-based PCB I bought from [Tindie](https://www.tindie.com/stores/tjhorner/). Created by TJ Horner, it goes between the control panel and the motor driver, intercepting the communication and exposing it via the ESPHome API.
 
 ![Upsy Desky PCB](upsy_desky.jpeg)
 *The Upsy Desky - making standing desks smarter!*
@@ -124,9 +124,7 @@ By connecting it to Home Assistant, you get:
 - Set positions via automations
 - Height-based triggers
 
-Is this needed? Probably not.
-
-Is it a funny gag when I say "Hey Siri, I want to stand" and my desk starts rising? *Absolutely*.
+It's always funny when I say "Hey Siri, I want to stand" and my desk starts rising.
 
 The Upsy Desky supports various standing desks with RJ45 keypad interfaces (Uplift, Jarvis, Omnidesk), including the IKEA UPPSPEL desk. Just plug it in and it works out of the box.
 
@@ -141,19 +139,17 @@ The Upsy Desky supports various standing desks with RJ45 keypad interfaces (Upli
 
 I've also been using quite a few **Shelly** devices. They sell various mains-connected smart switches that go behind your existing light switches, bringing both the switch and the lights into Home Assistant.
 
-They're cheap. They work. What more could you ask for?
-
 I've used different models:
 - **Shelly 2.5** for automating the lights in my old apartment
 - **Shelly Uni** for my [roof window project](/posts/iot2-window)
 - **Shelly Plus Plug S** for my [door project](/posts/iot3-door)
 
-Sadly, the Shelly 2.5 has since been discontinued, but the [Shelly 2PM Gen4](https://www.shelly.com/products/shelly-2pm-gen4) is a fitting replacement.
+By now, the Shelly 2.5 has since been discontinued, but the [Shelly 2PM Gen4](https://www.shelly.com/products/shelly-2pm-gen4) is a fitting replacement.
 
 ![Shelly 2.5](shelly_25.png)
 *The Shelly 2.5 - small enough to fit behind most light switches*
 
-But here's what makes Shelly devices special for tinkerers: They're *incredibly* flash-friendly.
+But what makes Shelly devices especially cool for tinkerers is that they are *incredibly* flash-friendly.
 
 Unlike most smart home devices that lock you into vendor clouds and proprietary apps, Shelly:
 - Uses ESP-based chips
@@ -161,9 +157,9 @@ Unlike most smart home devices that lock you into vendor clouds and proprietary 
 - Provides documentation on how to flash custom firmware
 - Doesn't even void your warranty for flashing
 
-So what you *can* do with Shellys is flash your own ESPHome config, and the device becomes 100% yours. No Chinese vendor clouds for my light bulbs. No phoning home. No wondering what telemetry is being collected.
+So what you *can* do with Shellys is flash your own ESPHome config, and the device becomes 100% yours - meaning no Chinese vendor clouds for my light bulbs, no phoning home, and no wondering what telemetry is being collected.
 
-Just local control. As it should be.
+Just local control, as it should be.
 
 **Shelly 2PM Gen4:** ~€30  
 **Where to buy:** [shelly.com](https://www.shelly.com/products/shelly-2pm-gen4) or various retailers
@@ -176,7 +172,7 @@ Just local control. As it should be.
 
 And lastly, the thing that connects all of these very necessary home automation parts: **Home Assistant**.
 
-My setup runs on a small Raspberry Pi 4 with a few key plugins:
+My setup runs on a small Raspberry Pi 4 with a few plugins:
 - **Homebridge** plugin to expose everything to Apple HomeKit
 - **ESPHome** add-on for flashing and monitoring ESP devices
 - **iSponsorBlock** plugin for YouTube TV (absolute blessing)
@@ -188,7 +184,7 @@ This way, I get the flexibility of Home Assistant's powerful automations while s
 
 I'll probably eventually upgrade to **Home Assistant Green** - a dedicated device that comes with Home Assistant pre-installed. It's fanless, silent, has 32GB storage and 4GB RAM, and just works out of the box.
 
-But for now, the Pi 4 serves me well. If it ain't broke, don't fix it. (Unless you're me, in which case: if it ain't connected to Home Assistant, it needs to be fixed.)
+But for now, the Pi 4 serves me well. If it ain't broke, don't fix it.
 
 **Home Assistant Green:** ~$129 / €109  
 **Where to buy:** [home-assistant.io/green](https://www.home-assistant.io/green) or various retailers like CloudFree, AmeriDroid
