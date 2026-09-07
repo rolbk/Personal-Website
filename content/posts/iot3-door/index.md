@@ -1,6 +1,6 @@
 +++
 title = "The Internet of Entrance Doors"
-summary = "How I taught my apartment's entrance door to recognize me and open automatically. A surprisingly practical tale of BLE authentication, hidden ESPs, and the occasional accidental door opening while driving by."
+summary = "How I made my apartment entrance buzz me in after authenticating my phone over BLE. It also opened the door once while I was driving past."
 author = "Emanuel Mairoll"
 date = "2023-08-12"
 tags = ['IoT', 'Home Assistant', 'ESPHome', 'BLE', 'iOS Shortcuts', 'Door Automation']
@@ -10,22 +10,20 @@ series_order = 3
 +++
 
 {{< lead >}}
-Or: How I achieved the ultimate lazy person's dream - never fumbling for keys again
+Or: How I never have to fumble for keys again
 {{< /lead >}}
 
-Compared to my previous adventures in this series - reverse-engineering a proprietary sofa protocol and decoding decades-old roof window communications - this project was refreshingly straightforward. No ladder acrobatics, no fried transistors, no proprietary bus protocols from the early 2000s.
-
-Just a simple goal: Make my entrance door open automatically when I approach it. You know, like in Star Trek, but for a 1970s Austrian apartment building.
+Compared to my previous adventures in this series - reverse-engineering a proprietary sofa protocol and decoding decades-old roof window communications - this project was refreshingly straightforward. No ladder acrobatics, no fried transistors, no proprietary bus protocols from the early 2000s... just a simple goal: Make my entrance door open automatically when I approach it.
 
 __*Stories from the Open Source Smart Home - Part 3*__
 
 ---
 
-## The Problem: Keys Are So Last Century
+## Keys Are So Last Century
 
 My Salzburg flat came with a modern keypad system for the building's entrance door. Great in theory - no keys to lose, just remember a code. Future.
 
-Until you try punching in a 6-digit code while balancing groceries, in the rain. And heaven forbid you get one digit wrong and have to start over while your frozen foods slowly defrost. Future, this was not.
+Until you try punching in a 6-digit code while balancing groceries, in the rain. And heaven forbid you get one digit wrong and have to start over while your food slowly gets soaked. Future, this was not. 
 
 But: The intercom handset system in my flat had a button to buzz people in. Every time I approached the building, loaded down with shopping bags, I'd think: "If only I could press that button from outside." Then I'd think: "Wait, I literally automate things for fun."
 
@@ -53,14 +51,14 @@ Image source: [This Manual](https://interfoni.rs/wp-content/uploads/2019/08/Btic
 
 ### The Reconnaissance
 
-The intercom was a BTICINO BTI334202 SPRINT - a fairly standard unit with four buttons for various functions (which I never quite figured out or used), plus one satisfying blue button for opening the door. Two screws and three plastic clips later I was looking at a surprisingly simple setup. A 5-wire bus system connected everything, and shorting the right two wires would trigger the door.
+The intercom was a BTICINO BTI334202 SPRINT. It had four buttons that didn't do anything, plus one big blue button for opening the door. Two screws and three plastic clips later, I was looking at a 5-wire bus where shorting the right two wires would trigger the door.
 
 Perfect. All I needed to do was short these two contacts, and the door would open.
 
 ![intercom_internals_front](intercom_internals_front.webp)
 ![intercom_internals_back](intercom_internals_back.webp)
 
-One convenient feature of this system are the screw terminals - no soldering required. I just loosened the terminals, added two additional wires from an ethernet cable I had laying around, and tightened them back down. Simple, clean, and (importantly) reversible.
+One convenient feature of this system was its screw terminals - no soldering required. I loosened them, added two wires from an ethernet cable I had lying around, and tightened them back down. Simple, clean, and (importantly) reversible.
 
 ### The Clean Installation
 
@@ -112,7 +110,7 @@ binary_sensor:
 
 The 0.2-second delay mimics a human button press - long enough to register, short enough not to annoy the door mechanism.
 
-ESPHome automatically integrated with Home Assistant, which then exposed it through Homebridge to HomeKit. Within minutes, I could open my entrance door with Siri. 
+ESPHome exposed the relay to Home Assistant, and that forwarded it to HomeKit. Within minutes, I could open my entrance door with my phone.
 
 "Hey Siri, open the door." 
 *Bzzzzt.* 
@@ -126,15 +124,15 @@ Now, having a button on my phone to open the door is nice, but the dream was han
 
 **Attempt #1: WiFi Detection**
 iOS Shortcuts can trigger when connecting to specific WiFi networks. It sounds perfect in theory: Trigger the door opener when my phone connects to my home WiFi. 
-However, the Problems with this became immediately apparent:
-- The WiFi sometimes reaches the surrounding area (hello, random door openings)
-- The WiFi sometimes doesn't reach the entrance (hello, waiting in the rain)
-- The Latency between connecting and the shortcut running is unpredictable in general
+However, the problems with this became immediately apparent:
+- The WiFi sometimes reaches the surrounding area (meh, random door openings)
+- The WiFi sometimes doesn't reach the entrance (meh, waiting in the rain)
+- The latency between connecting and the shortcut running is unpredictable in general
 
 **Attempt #2: Geolocation**
 iOS also supports location-based automations. So: Set up a geofence around my building, trigger when entering. What could go wrong?
 
-Well, it turns out GPS resolution is sometimes... optimistic. One time when I drove past my building on the way to somewhere my grandparents, the automation triggered. Twenty minutes later, I realized my building's door had been wide open the entire time. Well, that was a fun drive back.
+Well, it turns out GPS resolution is sometimes... optimistic. One time when I drove past my building on the way to my grandparents' place, the automation triggered. Twenty minutes later, I realized my building's door had been wide open the entire time. Well, that was a fun drive back.
 
 Geofencing: Not precise enough for entrance doors, apparently.
 
@@ -143,24 +141,24 @@ Geofencing: Not precise enough for entrance doors, apparently.
 What I needed was something with:
 - Short range (5-10 meters maximum)
 - Fast detection
-- Secure enough that neighbors couldn't accidentally trigger it
+- Something that neighbors couldn't accidentally trigger
 - Works in iOS background mode (the killer requirement)
 
-Enter Bluetooth Low Energy (BLE). It turns out iOS has surprisingly good support for BLE in shortcuts - originally designed for medical devices and fitness trackers, but perfectly suited for proximity-based authentication as well.
+Bluetooth Low Energy (BLE) fits those requirements perfectly. Its short range limits it to only around the entrance, and iOS had surprisingly good background support for it - originally intended for devices such as medical sensors and fitness trackers, but perfectly suited for proximity-based authentication as well.
 
-The concept was straightforward: place a BLE beacon near the door that broadcasts a challenge, have my phone respond with the correct response, door opens. Like a cryptographic handshake, but for doors.
+The concept was straightforward: place a BLE beacon near the door that broadcasts a challenge, have my phone respond with the correct response, door opens. A cryptographic handshake, for doors.
 
 ## Act III: The BLE Key System
 
 ### The Protocol
 
-I designed a simple HMAC-based authentication system:
+I designed a simple challenge-response system built around SHA-256:
 
 1. **The ESP32 beacon** continuously advertises a BLE service with a "challenge" characteristic
-2. **The challenge** is a hash of the current time (rounded to 1-second intervals) plus a salt
-3. **The phone** reads this challenge, computes HMAC-SHA256(challenge + shared_secret)
-4. **The phone** writes this response back to a "response" characteristic
-5. **The ESP32** validates the response and triggers the door if correct
+2. **The challenge** is SHA-256 of the current time (rounded to 1-second intervals) plus a salt
+3. **The phone** reads the challenge and computes `SHA256(hex(challenge) + shared_secret)`
+4. **The phone** writes the first 22 bytes of that hash back to a "response" characteristic
+5. **The ESP32** checks the response against the current and recent previous challenges, then triggers the door if one matches
 
 ### The Sensor Hardware
 
@@ -171,11 +169,11 @@ The Shelly Plug Plus S turned out to be the perfect candidate for this. It's one
 ![shelly](shelly.png)
 Image source: [Shelly Online Store](https://www.shelly.com/products/shelly-plus-plug-s-white?variant=56273485365597)
 
-After cracking it open and finding the clearly labeled programming headers, flashing it with custom firmware was a breeze. Five minutes later, I had a fully functional smart plug running ESPHome.
+After cracking it open and finding the clearly labeled programming headers, flashing it with custom firmware was straightforward. Five minutes later, I had a fully functional smart plug running ESPHome.
 
 ### The Software
 
-The ESPHome configuration is surprisingly simple - Most of the complexity is hidden in the `esp32_ble_key` section. It's a custom C++ component that implements the time-based challenge-response authentication.
+The ESPHome configuration is fairly short because the `esp32_ble_key` section hides most of the complexity. That custom C++ component implements the time-based challenge-response authentication.
 
 ```yaml
 esphome:
@@ -218,7 +216,7 @@ Not shown here is the additional logic to keep the smart plug working as a power
 
 ESPHome has a neat feature where you can write your own components in C++ when the built-in ones don't cut it. These live in a `my_components` folder and extend ESPHome's functionality with whatever crazy protocol or hardware you need to support. Think of them as plugins that integrate seamlessly with the YAML configuration - you get all the benefits of ESPHome (OTA updates, Home Assistant integration, logging) while having the full power (and complexity) of C++.
 
-Every second, the component generates a new challenge by hashing the current timestamp with a salt, then broadcasts this via a BLE characteristic. When a phone connects and reads the challenge, it calculates SHA256(challenge + shared_secret) and writes the response back. The ESP validates this response and triggers the door:
+Every second, the component generates a new challenge by hashing the current timestamp with a salt, then broadcasts it through a BLE characteristic. The phone hex-encodes that challenge, appends the shared secret, hashes the resulting string with SHA-256, and writes back the first 22 bytes. The ESP checks that response and triggers the door:
 
 ```cpp
 void ESP32BLEKeyComponent::process_incoming_data_(
@@ -231,6 +229,7 @@ void ESP32BLEKeyComponent::process_incoming_data_(
   sha.update(challenge_plus_secret);
   auto expected_hash = sha.digest();
   
+  // Compare the 22-byte prefix sent by the phone
   if (data == expected_hash_vec) {
     // Valid response - trigger door opener!
     this->authorizer_->publish_state(true);
@@ -242,7 +241,7 @@ void ESP32BLEKeyComponent::process_incoming_data_(
 }
 ```
 
-The challenge rotates every second, so intercepted responses become useless almost immediately. The component also accepts the previous challenge (up to 3 seconds old) to handle processing delay.
+The challenge rotates every second, so intercepted responses become useless almost immediately. To account for processing delay, the component also accepts responses derived from challenges up to 3 seconds old.
 
 #### Security Considerations
 
@@ -260,9 +259,9 @@ Safe enough.
 
 The most constrained part of the whole system was iOS. Background Bluetooth in iOS Shortcuts is... quirky. You get 30 seconds of runtime maximum, no UI, limited API access, and if you do anything Apple doesn't like, your shortcut silently fails.
 
-I first tried to create it as embedded script in one of the many JavaScript for Automation apps (Scriptable, etc). But these apps have their own quirks, and getting BLE to work reliably was a nightmare. After several failed attempts, I settled on using a custom iOS App with a embedded Shortcut that implements authentication logic.
+I first tried to implement it as an embedded script in one of the many JavaScript automation apps, such as Scriptable. Those apps had their own quirks, and getting BLE to work reliably was a nightmare. After several failed attempts, I built a custom iOS app for the BLE and authentication logic, then invoked it from a Shortcut that supplied the shared secret.
 
-When triggered, the shortcut:
+When triggered, the app:
 1. Scans for BLE devices with the specific service UUID
 2. Connects to the first one found
 3. Reads the challenge characteristic
@@ -337,19 +336,14 @@ class BLEClient: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate, @unch
 ```
 
 
-To avoid battery drain, the shortcut only runs when specific triggers occur:
-- Disconnecting from CarPlay when around my (coarse) home location
-- Entering a (coarse) geofence around my building
-- Or when I manually trigger it from the control center (with hands still free)
-
-In order to bypass the 30 second limit, I run the shortcut multiple times in succession until it succeeds. Looping it 6 times gives me 3 minutes of runtime, which is more than enough time to get from my car to the door.
+To avoid battery drain, the Shortcut only invokes the app when disconnecting from CarPlay around my (coarse) home location, or when entering a (coarse) geofence around my building. To bypass the 30-second limit, I run the Shortcut multiple times in succession until it succeeds. Six attempts give me three minutes of runtime, which is more than enough time to get from my car to the door.
 
 ## Putting everything together
 
-Unlike my previous projects, installation was remarkably smooth:
+Installation was simple:
 
-1. **Install the intercom controller**: Already done, hidden behind the couch
-2. **Deploy the BLE sensor**: Plugged the reflashed Shelly into an outlet in the building entrance
+1. **Install the intercom controller**: Hidden behind the couch
+2. **Deploy the BLE sensor**: Plug the reflashed Shelly into an outlet in the building entrance
 3. **Configure Home Assistant**: One simple automation:
    ```yaml
    - alias: "Open door when key detected"
@@ -361,32 +355,22 @@ Unlike my previous projects, installation was remarkably smooth:
        - service: switch.turn_on
          entity_id: intercom.door_opener
    ```
-4. **Set up the iOS Shortcut**: Create automation, add triggers, test
+4. **Set up the iOS Shortcut**: Add the triggers and test it
 
-Simple. Reliable. Almost boring in its straightforwardness.
+I tried it out, and it worked perfectly. I could walk up to the building, and the door would unlock itself. 
 
 ## Living with Magic Doors
 
-It's been a year since installation, and I can report that having your door open automatically when you approach never gets old. There's something deeply satisfying about walking up to your building with arms full of groceries and having the door just... open.
+It's been a year since installation, and I can report that having your door open automatically when you approach never gets old.
 
-Visitors are consistently amazed. "Did you just open that with your phone?" Well, yes, but also no. It's more like the door recognized me and decided I was worthy of entry. 
+Visitors are consistently amazed. "Did you just open that with your phone?" Well, yes, but also no. It's more like the door recognized me and opened itself. 
 
 Before I got used to it, sometimes even I got startled by the unexpected buzz of the door unlocking.
 
 Future, this is.
 
-**The Statistics:**
-- Total door openings: 491
-- Success rate: ~98% (failures usually due to iOS being iOS)
-- Accidental openings after fixing geofence: 0
-- Time saved fumbling for keys: Incalculable
-
-This project lacks the reverse-engineering adventure of my previous exploits. However, sometimes the best home automation isn't about conquering impossible technical challenges. Sometimes it's about solving a simple, daily annoyance with exactly the right amount of engineering.
-
 Every time I walk up to my building, hands full of groceries, and hear that satisfying bzzt as the door unlocks itself - that's when I remember why I love doing this.
-
-Even if my neighbors think I'm a wizard.
 
 ---
 
-*This is Part 3 of my "Stories from the Open Source Smart Home" series. My landlord knows about it and thinks its black magic. The shared secret was rotated regularly (okay, I've been meaning to rotate it for over six months). The system was cleanly removed when I moved out, leaving no trace except for one weird cable behind where the couch used to be.*
+*This is Part 3 of my "Stories from the Open Source Smart Home" series. My landlord knows about it and thinks it's black magic. The shared secret was rotated regularly (okay, I've been meaning to rotate it for over six months). The system was cleanly removed when I moved out, leaving no trace except for one weird cable behind where the couch used to be.*

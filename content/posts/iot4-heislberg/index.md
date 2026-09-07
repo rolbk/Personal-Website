@@ -1,6 +1,6 @@
 +++
 title = "Heislberg: The Internet of Toilets"
-summary = "How I used an ESP, Magnets and Kubernetes and to solve the great toilet crisis of 2021. A tale of absolutely necessary workplace optimization."
+summary = "How I used an ESP, magnets, and Kubernetes to solve the great toilet crisis of 2021. A tale of absolutely necessary workplace optimization."
 author = "Emanuel Mairoll"
 date = "2024-11-15"
 tags = ['IoT', 'ESPHome', 'MQTT', 'Office Automation', 'Toilets', 'Questionable Life Choices']
@@ -9,11 +9,11 @@ series = ["The Open Source Smart Home"]
 series_order = 4
 +++
 
-Oh boy, do I love stupid projects. And oh boy, do I love IoT. But most of all, I love solving minuscule problems in absolutely ridiculous ways. 
+Oh boy, do I love stupid projects. And oh boy, do I love IoT. But most of all, I love solving minuscule problems in absolutely ridiculous ways.
 
-So, this is the story of how I used an ESP, Magnets and Kubernetes to solve the great toilet crisis of 2021.
+So this is the story of how I used an ESP, magnets, and Kubernetes to solve the great toilet crisis of 2021.
 
-> I would have written this article far sooner, as it was my first contact with the IoT stack that I kept using for other (and more useful) home automation projects. However, some colleagues kept muttering about "privacy concerns" and "professional boundaries."
+> I would have written this article far sooner, as it was my first contact with the IoT stack that I kept using for other (and more useful) home automation projects. However, some colleagues kept talking about "privacy concerns" and "professional boundaries."
 <br> But now that enough time has passed, I hope I can finally freely share this tale of absolutely necessary workplace optimization.
 
 __*Stories from the Open Source Smart Home (Office) - Part 4*__
@@ -22,15 +22,13 @@ __*Stories from the Open Source Smart Home (Office) - Part 4*__
 
 ## The Great Toilet Crisis of 2021
 
-Picture this: A thriving tech company. Twenty-something male engineers. One toilet stall.
-
-You can see where this is going.
+Picture this: A thriving tech company. Twenty-something male engineers. One toilet stall. You can see where this is going.
 
 The daily dance was predictable: You'd feel nature's call, walk to the bathroom with confidence, only to find the stall occupied. Then came the walk of shame back to your desk, where you'd sit and wonder, "Is it free yet? Should I check again? How long is too long to wait?"
 
-The real problem wasn't the single stall. It was the *uncertainty*. You'd walk all the way to the bathroom (a whole 20 meters!), find it occupied, and then have to walk ALL THE WAY BACK to your desk. That's 40 meters of completely unnecessary locomotion. Multiply that by 20 engineers, several times a day, and we're talking about kilometers of wasted movement.
+One stall was already bad enough - but it was the he *uncertainty* turned every bathroom break into a gamble. You'd walk all the way to the bathroom (a whole 20 meters!), find it occupied, and then have to walk ALL THE WAY BACK to your desk. That's 40 meters of completely unnecessary locomotion. Multiply that by 20 engineers, several times a day, and we're talking about kilometers of wasted movement.
 
-We were engineers. We had Git workflows more sophisticated than NASA's launch protocols. We had CI/CD pipelines that would make DevOps consultants weep tears of joy. But we couldn't figure out if the toilet was free without physically walking there.
+We were engineers. We over-engineered every microservice and CI/CD pipeline. But we couldn't figure out if the toilet was free without physically walking there.
 
 Obviously, this was unacceptable.
 
@@ -67,7 +65,7 @@ But I'm not a sane person. I'm an engineer with a mission.
 
 ![open sensor](sensor_internals.webp)
 
-So naturally, I had the sensor open, ready to reverse engineer. Connected to mains power of course, to be able to map out the voltages. Set up my workbench, got my multimeter ready, carefully mapped out the circuit. I was being *so* professional about it. Right up until the moment I accidentally touched the wrong part with my screwdriver.
+So naturally, I opened the sensor on my workbench and connected it to mains so I could map the voltages. With my multimeter ready, I carefully traced the circuit. I was being *so* professional about it - right up until the moment I accidentally touched the wrong part with my screwdriver.
 
 *230V AC straight into my hand.*
 
@@ -75,14 +73,14 @@ The muscles in my arm did that fun involuntary contraction thing. The screwdrive
 
 > Ouch.
 
-Ok ok... Lession learned... Moving on.
+Ok ok... Lesson learned... Moving on.
 
 
 ### Attempt #2: The Obvious Box 2.0
 
 I considered recreating my colleagues' box design but making it smaller and less conspicuous.
 
-After trying every possible mounting position, I however concluded that any external box would still look like we were filming a very specific genre of content.
+After trying every possible mounting position, however, I concluded that any external box would still look like we were filming a very specific genre of content.
 
 Back to the drawing board.
 
@@ -90,7 +88,7 @@ Back to the drawing board.
 
 Maybe I could hide something in the door frame itself? 
 
-I spent an entire evening with my toolbox spread across the bathroom floor. First, I removed the entire lock mechanism from the door. Then I disassembled it completely, every single spring and pin laid out on paper towels like I was performing mechanical surgery.
+I spent an entire evening with my toolbox spread across the bathroom floor. First, I removed the entire lock mechanism from the door. Then I disassembled it completely, every single spring and pin laid out on paper towels on the floor.
 
 **The good news:** I found space inside the door frame cavity. <br>
 **The bad news:** There was no way to get power there without visible cables. <br>
@@ -99,13 +97,15 @@ I spent an entire evening with my toolbox spread across the bathroom floor. Firs
 ![door surgery](door_surgery.webp)
 ![door surgery internals](door_surgery_internals.webp)
 
-## The Breakthrough: Magnetic Fields Don't Lie
+## The Breakthrough: Magnetic Fields
 
-Remember playing with magnets and compasses as a kid? Magnet goes near compass, needle moves - basic physics that every 8-year-old knows. Take that same setup, and wiggle a piece of iron between them - the needle reacts. The magnetic field lines are "pulled into" the magnetic conductor, which changes the field the compass sees. Nothing fancy.
+Remember playing with magnets and compasses as a kid? Put a magnet near a compass and the needle moves. Basic physics that every 8-year-old knows.
 
-But here's what blew my mind: If you wiggle the iron *behind* the magnet - so on the opposite side, and quite a bit away from the compass - the needle STILL reacts. The metal behind the magnet changes the field in front of it.
+Slide a piece of iron between them and it moves as well. The magnetic field lines are "pulled into" the magnetic conductor, which changes the field the compass sees. Nothing fancy.
 
-So, while playing with Hall effect sensors for an unrelated project (I swear), I had an epiphany. The door lock was metal. And magnetic fields... they go through walls.
+What blew my mind was that the compass also reacted when I moved the iron *behind* the magnet, on the opposite side and quite a bit away from the compass. The iron changed the field around the magnet enough to affect the measurement in front of it.
+
+So, while playing with magnetic sensors for an unrelated project (I swear), I had an epiphany. The door lock was metal. And magnetic fields... they go through walls.
 
 I could detect the door state from *inside the wall*.
 
@@ -115,13 +115,13 @@ I could detect the door state from *inside the wall*.
 
 I needed to test this theory. 
 
-The wall in question was drywall - specifically, dual drywall that I could access through the hole for the movement sensor (that I'd previously electrocuted myself with). I grabbed a Wemos D1 mini I had lying around, connected it to a hall sensor, and attached the whole mess to the end of a ridiculously long USB cable.
+The wall was made of two layers of drywall, and I could access the cavity through the hole for the movement sensor (that I'd previously electrocuted myself with). I grabbed a Wemos D1 mini I had lying around, connected it to a magnetometer, and attached the whole mess to the end of a ridiculously long USB cable.
 
-While I dont have a picture of the actual sensor, here is a later revision of what I call a "Sensor on a Stick":
+While I don't have a picture of the actual sensor, here is a later revision of what I call a "Sensor on a Stick":
 
 ![sensor on a stick](sensor_on_a_stick.webp)
 
-Then came the funny part: feeding this contraption through the wall cavity. I'd deliberately stayed late at the office for this experiment, figuring I'd have privacy for my bathroom floor engineering session.
+Then came the funny part: feeding this contraption through the wall cavity. I'd deliberately stayed late at the office for this experiment, figuring I'd have privacy for my bathroom engineering session.
 
 Of course, that's exactly when a colleague returned to grab his forgotten laptop and found me sitting on the bathroom floor with a USB cable disappearing into the wall.
 
@@ -133,25 +133,25 @@ He left. We never spoke of it again.
 
 Anyways, the sensor ended up roughly where I estimated the strike plate of the door lock would be. 
 
-*Compass in place. ✅*
+*Compass in place.*
 
-Next, I placed a neodymium magnet in the strike plate hole, which I could clearly see on the sensor readings behind it in the wall. 
+Next, I placed a neodymium magnet in the strike plate hole. Its field immediately showed up in the sensor readings.
 
-*Magnet in place. ✅*
+*Magnet in place.*
 
-Then, locked the door in front of me, and... 
+Then I locked the door in front of me, and...
 
 It worked. Not just "kind of worked" - it worked *perfectly*. 
 
-The solid metal door lock was a perfect magnetic field conductor. With the magnet positioned just right, I could detect not just whether the door was closed, but even if it was *locked*. The bolt sliding into place created a completely different magnetic signature - the magnetometer XYZ values changed predictably: door open, door closed, door locked. Three distinct states, all readable from inside the wall.
+With the magnet positioned just right, the steel lock produced different magnetometer readings as the door moved between open, closed, and locked. Sliding the bolt into place changed the XYZ values enough to give me three distinct states, all readable from inside the wall.
  
-It was beautiful. It was elegant. It was completely invisible.
+_It was beautiful. It was elegant. It was completely invisible._
 
-It needed a name.
+_It needed a name._
 
 ## The Heislberg Uncertainty Principle
 
-If you were wondering about the posts title...
+If you were wondering about the title of the post...
 
 Werner Heisenberg was a German physicist. That means, he definitely had *something* to do with magnets. Probably. 
 
@@ -167,15 +167,15 @@ Anyways, now that the most difficult part of every tech project is done - *namin
 
 Around this time, my colleague was building his house and kept talking about his DIY home automation setup. He'd discovered these OLIMEX ESP32-POE boards which he used all over the system, and he couldn't stop praising them.
 
-I was intrigued and asked if he could bring me a spare to try out. He did, I plugged it in, and immediately fell in love. The ESP ecosystem has amazing software support in general, the "32" in it meant enough processing power for anything I could throw at it, and Power over Ethernet meant no suspicious power cables running through the wall.
+I asked if he could bring me a spare to try out. He did, I plugged it in, and immediately fell in love. The ESP ecosystem has amazing software support in general, the "32" in it meant enough processing power for anything I could throw at it, and Power over Ethernet meant no suspicious power cables running through the wall.
 
 Basically: Perfect for toilet monitoring. (Also perfect for my sofa project, but that's yet [another story](/posts/iot1-sofa).)
 
-For the Hall sensor, I went with the GY-271 HMC5883L - a 3D magnetometer breakout board that was easy to source and had good ESP library support. The only thing to watch out for was I2C's cable length - anything over 1-2 meters and the signal starts getting flaky.
+For the magnetic sensor, I used a GY-271 breakout with ESPHome's HMC5883L driver. It was easy to source, but I2C limited the cable length. In my setup, anything beyond 1-2 meters became unreliable.
 
 ### The Installation
 
-This is where things got interesting. The movement sensor I'd unsuccessfully tried to hack earlier? It has to get power from *somewhere*. The next evening, armed with my cable pull rod, I went spelunking in the office infrastructure.
+The movement sensor I'd unsuccessfully tried to hack earlier? It has to get power from *somewhere*. The next evening, armed with my cable pull rod, I went spelunking in the office infrastructure.
 
 Following the cable with my pull rod through the wall cavity and cable conduit led me up into the dropped ceiling. Popping my head up there with a ladder revealed several incredible discoveries:
 
@@ -187,27 +187,19 @@ Following the cable with my pull rod through the wall cavity and cable conduit l
 
 I'm not saying the building was designed for toilet monitoring, but I'm not *not* saying it either.
 
-The installation process that followed was surprisingly straightforward:
-
-First, I pulled a four-conductor telephone cable with pre-soldered terminal connectors (VCC, GND, SCA, SDL) through the existing conduit.
-
-Next came the delicate operation of shoving the Hall sensor into the wall cavity, positioning it right behind where I'd placed a small neodymium magnet in the strike plate hole. The sensor dangled there on its wires like a very expensive spider.
-
-The ESP32-POE got the royal treatment - plugged into a breadboard that I then mounted to the ceiling infrastructure using the finest installation method known to engineering: double-sided tape.
+I pulled a four-wire telephone cable with pre-soldered terminal connectors (VCC, GND, SDA, SCL) through the existing conduit. Then I shoved the magnetometer into the wall cavity, positioning it right behind where I'd placed a small neodymium magnet in the strike plate hole. Finally, I put the ESP32-POE on a breadboard mounted to the ceiling using the finest installation method known to engineering: double-sided tape.
 
 ![ceiling mounted](ceiling_mounted.webp)
 
 After connecting the I2C cable from the wall sensor to the ceiling-mounted ESP, I ran an Ethernet cable over to the patch panel. From there, it was a simple hop to the server room where I connected everything to a PoE injector on the guest network (the Network Admin had already given his blessing - he was surprisingly enthusiastic about the whole thing).
 
-Total time: three hours, mostly spent wondering what I was doing with my life.
-
 ## The Toilet (Data) Pipeline
 
 ### The "Edge Device"
 
-The ESP32-POE went through two iterations of firmware. Initially, I wrote it in C++ using libraries for the HMC5883L and MQTT - a simple polling loop that read sensor values and pushed them to the broker. It worked well for the first few weeks, but sometimes the sensor mysteriously got "stuck" without explanation. With no logs to debug with (because who needs logging?), we suspected a memory leak in one of the libraries. The only fix was a restart, which was particularly annoying when you're trying to maintain toilet monitoring uptime.
+The ESP32-POE went through two iterations of firmware. Initially, I wrote it in C++ using libraries for the HMC5883L and MQTT. A simple polling loop read the sensor values and pushed them to the broker. It worked well for the first few weeks, but sometimes the sensor mysteriously got "stuck" without explanation. With no logs to debug with (because who needs logging?), we suspected a memory leak in one of the libraries. The only fix was a restart, which meant pulling out cables in the server room.
 
-After successfully using ESPHome in other projects, I decided to migrate the Heislberg firmware as well. Not only was YAML configuration less likely to segfault the toilet, but it also provided proper logging and an elegant OTA update mechanism. As a bonus, said update mechanism also enabled us easily performing the occupancy classification directly on the ESP rather than relying on the rest of the pipeline.
+After using ESPHome in other projects, I migrated Heislberg as well. The YAML configuration was less likely to segfault the toilet, and proper logging gave us a chance of diagnosing the next failure. OTA updates also let me iterate without climbing back into the ceiling. During the migration, I moved occupancy classification onto the ESP so the rest of the pipeline no longer had to do it.
 
 Here's the final ESPHome configuration (which, admittedly, still became much more C++ heavy than anticipated):
 
@@ -353,15 +345,15 @@ script:
 
 ### MQTT server
 
-Nothing fancy here - just a standard Mosquitto server running in our Kubernetes cluster, deployed specifically for this project (because of course we spun up dedicated infrastructure for toilet monitoring). 
+The MQTT broker was a standard Mosquitto server in our Kubernetes cluster, deployed specifically for this project (because of course we spun up dedicated infrastructure for toilet monitoring).
 
-The broker was exposed on the guest network (same network as the ESP32), which made the Network Admin happy since it kept the toilet traffic segregated from production systems. Running it in Kubernetes was probably overkill for a broker handling just a handful of topics (magnetic field XYZ values, door state, and the occasional diagnostic message), but hey - if you're going to over-engineer a toilet sensor, you might as well give it enterprise-grade message queuing. Plus, automatic restarts meant we'd never lose toilet telemetry due to a crashed broker. Priorities.
+The broker ran on the guest network alongside the ESP32, which kept the toilet traffic separated from production systems and made the network admin happy. It handled only a handful of topics, but Kubernetes gave the toilet enterprise-grade message queuing and automatic restarts. Priorities.
 
 ### Janus: Data Processing
 
-Before migrating to ESPHome and its convenient OTA updates, we wanted to decouple the sensor data from the classification logic (because that's what you do when you're definitely not over-engineering). The idea was to avoid having to reflash the firmware if the magnetic field values ever changed - which would require more ceiling spelunking to physically access the ESP32.
+Before migrating to ESPHome, we kept classification off the ESP so changing magnetic field thresholds would not require reflashing it and spelunking through the ceiling again.
 
-Enter Janus, a small Go microservice that acts as the central hub for all toilet data:
+So we wrote Janus, a small Go microservice that acts as the central hub for all toilet data:
 
 - Subscribes to raw XYZ magnetic field values
 - Classifies these positions in 3D space (open/closed/locked) using thresholds
@@ -371,9 +363,9 @@ Enter Janus, a small Go microservice that acts as the central hub for all toilet
 
 The name? Janus is the Roman god of doors and transitions. Also, it sounds like... well, you get it. We're professionals here.
 
-As described above, we later dropped the classification part and moved it to the edge device, but Janus remained the central hub for data format conversions and API endpoints. Never waste a good pun-based microservice name!
+As described above, we later moved classification onto the ESP, but Janus remained responsible for data format conversions and the API endpoints. Never waste a good pun-based microservice name!
 
-## The Many Visualizations (The Part Where We Kinda Lost Control)
+## The Many Visualizations
 
 ### Company Dashboard
 
@@ -392,17 +384,13 @@ If you by chance ever happen to need a macOS menu bar app that shows toilet occu
 {{< github repo="EmanuelMairoll/MenuQTTool" showThumbnail=true >}}
 
 ### Random ESPs
-I had a few spare Wemos D1 mini boards lying around, so I flashed them with a simple ESPHome config that showed the toilet status on the small onboard LED - off for free, on for occupied. Dangling on their small USB cables, they found homes in various places around the office - under desks, on shelves, wherever someone might glance at them and get a quick status update.
+I had a few spare Wemos D1 mini boards lying around, so I flashed them with a simple ESPHome config that showed the toilet status on the small onboard LED - off for free, on for occupied. Dangling on their small USB cables, we put them in various places around the office - under desks, on shelves, wherever someone might glance at them and get a quick status update.
 
 ### The ON AIR Sign
 
 Lastly, I had grand plans for a huge "ON AIR" sign that would light up when occupied. You know, the classic red broadcasting light that every podcast studio has - except ours would indicate a very different kind of live performance.
 
-I'd already sourced everything: a vintage-style LED sign from Amazon, an ESP8266 based relay module to control it from AliExpress, and I'd even started writing the ESPHome config for it.
-
-The vision was clear - a big, unapologetic beacon of toilet occupancy that would finally bring our bathroom monitoring system out of the shadows (or walls, in this case). 
-
-Subtle? No. Effective? Absolutely.
+I'd already sourced everything: a vintage-style LED sign from Amazon, an ESP8266-based relay module from AliExpress to control it, and I'd even started writing the ESPHome config.
 
 Sadly, I left the company before installation day arrived. But, somewhere in my basement, buried in a box of electronics parts, that sign still waits for its moment of glory.
 
@@ -410,9 +398,8 @@ Sadly, I left the company before installation day arrived. But, somewhere in my 
 
 Before I left, the system had been running flawlessly for months. It processed over 15,000 "transactions." The average occupancy was 6.3 minutes. Peak usage was Wednesday at 03:30 PM (after the all-hands meeting with a lot of coffee).
 
-
 The beautiful thing is that the system might still be running. Hidden in the walls, an ESP32 silently monitoring magnetic fields, broadcasting to an MQTT topic that maybe nobody subscribes to anymore. A digital ghost of over-engineering past.
 
 ---
 
-*This is Part 4 of my "Unnecessary Home Office Automation" series. All names have been changed to protect the guilty. No toilets were harmed in the making of this project. The CEO eventually found out, and found it pretty funny after all. Privacy concerns were... addressed retroactively.*
+*This is Part 4 of my "Unnecessary Home Automation" series. No toilets were harmed in the making of this project. The CEO eventually found out, and found it pretty funny after all. Privacy concerns were... addressed retroactively.*

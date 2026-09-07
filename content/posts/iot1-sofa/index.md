@@ -62,14 +62,12 @@ The buttons connected via a coupler, meaning theoretically no soldering required
 
 For the implant, I needed something with Ethernet connectivity (because WiFi sucks for IoT), enough GPIO pins, and solid software support.
 
-After my last IoT adventure, I opted for an OLIMEX ESP32-POE again, as I was very satisfied with it. It's reliable, well-documented (as in "fully Open Source"), and has everything I needed for the project.
+After my [other](/posts/iot4-heislberg) IoT adventures, I opted for an OLIMEX ESP32-POE again. It's reliable, well-documented (as in "fully Open Source"), and has everything I needed for the project.
 
 The only feature I wished the ESP32-POE had was built-in circuitry for handling higher voltages. Since the board lacks onboard relays or optocouplers, I decided to interface directly with the sofa's control circuits.
 For the output signals, I initially tried connecting the ESP's 3.3V GPIO pins directly to the transistor bases, but the existing 10kΩ inline resistors dropped too much voltage. One quick soldering job later, I had bridged those resistors and added 820Ω resistors on the breadboard instead to properly scale the voltage. This gave the transistors exactly what they needed to switch reliably.
 
 For the input signals, the sofa's buttons supply 32V - definitely not ESP-friendly territory. A simple voltage divider using 10kΩ and 1kΩ resistors brought those signals down to a safe 3V range that the ESP could read.
-
-For power supply, I simply opted for USB because I didn't know if the piston would create ripples on the power supply that could throw the ESP off, and it was easier than messing with the sofa supply voltage or ensuring galvanic isolation for PoE.
 
 ![recon](esp.webp)
 
